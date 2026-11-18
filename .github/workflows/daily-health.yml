@@ -2,8 +2,8 @@ name: Daily health report
 
 on:
   schedule:
-    # 09:30 Asia/Kolkata (UTC+05:30). GitHub schedules can run late.
-    - cron: '0 4 * * *'
+    # 09:47 Asia/Kolkata (UTC+05:30). GitHub schedules can run late.
+    - cron: '17 4 * * *'
   workflow_dispatch:
 
 permissions:
