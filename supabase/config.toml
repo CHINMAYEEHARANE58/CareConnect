@@ -1,0 +1,19 @@
+project_id = "careconnect"
+
+[db.seed]
+enabled = true
+sql_paths = ["./seed.sql"]
+
+[auth]
+site_url = "careconnect://auth-callback"
+additional_redirect_urls = ["careconnect://auth-callback"]
+
+[auth.email]
+enable_signup = true
+enable_confirmations = true
+
+[functions.dispatch-notifications]
+verify_jwt = false
+
+[functions.delete-account]
+verify_jwt = true

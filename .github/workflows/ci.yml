@@ -1,0 +1,66 @@
+name: CI
+on:
+  push:
+  pull_request:
+jobs:
+  flutter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.41.2'
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: dart format --output=none --set-exit-if-changed lib test integration_test
+      - run: flutter analyze
+      - run: flutter test test
+      - run: flutter build apk --debug
+  database:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: careconnect
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d careconnect"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      PGPASSWORD: postgres
+      CARECONNECT_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/careconnect
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - run: psql "$CARECONNECT_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/bootstrap.sql
+      - run: psql "$CARECONNECT_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/migrations/202610210001_initial.sql
+      - run: psql "$CARECONNECT_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/migrations/202610210002_hardening.sql
+      - run: psql "$CARECONNECT_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/seed.sql
+      - run: psql "$CARECONNECT_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/booking.sql
+      - run: psql "$CARECONNECT_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/workflows.sql
+      - run: scripts/test_concurrent_booking.sh
+  edge-functions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - run: deno check supabase/functions/dispatch-notifications/index.ts supabase/functions/delete-account/index.ts
+  ios:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.41.2'
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter build ios --debug --no-codesign

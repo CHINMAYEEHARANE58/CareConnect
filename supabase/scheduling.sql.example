@@ -1,0 +1,12 @@
+-- Apply manually in Supabase SQL Editor after replacing PROJECT_URL and CRON_SECRET.
+-- Do not commit real secrets. pg_net, pg_cron, and Vault must be enabled.
+select vault.create_secret('https://PROJECT_REF.supabase.co', 'careconnect_project_url');
+select vault.create_secret('REPLACE_WITH_CRON_SECRET', 'careconnect_cron_secret');
+select cron.schedule('careconnect-dispatch', '* * * * *', $$
+  select net.http_post(
+    url := (select decrypted_secret from vault.decrypted_secrets where name='careconnect_project_url') || '/functions/v1/dispatch-notifications',
+    headers := jsonb_build_object('Content-Type','application/json','Authorization','Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name='careconnect_cron_secret')),
+    body := '{}'::jsonb
+  );
+$$);
+select cron.schedule('careconnect-retention', '15 3 * * *', $$select public.purge_expired_data();$$);
