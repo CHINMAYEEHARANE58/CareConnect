@@ -127,7 +127,7 @@ class CareRepository {
     final rows = await db
         .from('appointments')
         .select(
-          'id,patient_id,doctor_id,clinic_id,starts_at,ends_at,status,clinics(name),doctors(display_name),profiles!appointments_patient_id_fkey(full_name)',
+          'id,patient_id,doctor_id,clinic_id,starts_at,ends_at,status,clinics(name,cancellation_cutoff_minutes),doctors(display_name),profiles!appointments_patient_id_fkey(full_name)',
         )
         .eq('patient_id', userId)
         .order('starts_at', ascending: false);
@@ -141,7 +141,7 @@ class CareRepository {
     var query = db
         .from('appointments')
         .select(
-          'id,patient_id,doctor_id,clinic_id,starts_at,ends_at,status,clinics(name),doctors(display_name),profiles!appointments_patient_id_fkey(full_name)',
+          'id,patient_id,doctor_id,clinic_id,starts_at,ends_at,status,clinics(name,cancellation_cutoff_minutes),doctors(display_name),profiles!appointments_patient_id_fkey(full_name)',
         );
     if (doctorId != null) query = query.eq('doctor_id', doctorId);
     if (clinicId != null) query = query.eq('clinic_id', clinicId);

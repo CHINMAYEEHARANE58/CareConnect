@@ -376,7 +376,7 @@ class _AppointmentCard extends StatelessWidget {
   final WidgetRef ref;
   @override
   Widget build(BuildContext context) {
-    final active = a.status == 'booked' && a.startsAt.isAfter(DateTime.now());
+    final canChange = a.canPatientChangeAt(DateTime.now());
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -398,8 +398,17 @@ class _AppointmentCard extends StatelessWidget {
             ),
             Text(a.clinicName),
             const SizedBox(height: 6),
-            Text(DateFormat('EEE, d MMM yyyy • h:mm a').format(a.startsAt)),
-            if (active)
+            Text(
+              '${DateFormat('EEE, d MMM yyyy • h:mm a').format(a.startsAt)} ${a.startsAt.timeZoneName}',
+            ),
+            if (a.status == 'booked' && a.startsAt.isAfter(DateTime.now()))
+              Text(
+                canChange
+                    ? 'Change deadline: ${DateFormat('EEE, d MMM • h:mm a').format(a.patientChangeDeadline)} ${a.patientChangeDeadline.timeZoneName}'
+                    : 'Change deadline passed. Contact the clinic if you need help.',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            if (canChange)
               Row(
                 children: [
                   TextButton(

@@ -80,6 +80,7 @@ class Appointment {
     required this.startsAt,
     required this.endsAt,
     required this.status,
+    required this.cancellationCutoffMinutes,
     this.patientName,
   });
   final String id,
@@ -91,6 +92,11 @@ class Appointment {
       status;
   final String? patientName;
   final DateTime startsAt, endsAt;
+  final int cancellationCutoffMinutes;
+  DateTime get patientChangeDeadline =>
+      startsAt.subtract(Duration(minutes: cancellationCutoffMinutes));
+  bool canPatientChangeAt(DateTime now) =>
+      status == 'booked' && !now.isAfter(patientChangeDeadline);
   factory Appointment.fromJson(Map<String, dynamic> j) => Appointment(
     id: j['id'] as String,
     clinicId: j['clinic_id'] as String,
@@ -104,6 +110,9 @@ class Appointment {
     startsAt: DateTime.parse(j['starts_at'] as String).toLocal(),
     endsAt: DateTime.parse(j['ends_at'] as String).toLocal(),
     status: j['status'] as String,
+    cancellationCutoffMinutes:
+        (j['clinics'] as Map<String, dynamic>)['cancellation_cutoff_minutes']
+            as int,
   );
 }
 

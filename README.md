@@ -69,10 +69,6 @@ flutter build apk --debug
 
 The SQL test suite can run on a disposable PostgreSQL 16 database: apply `supabase/tests/bootstrap.sql`, both migrations, and `supabase/seed.sql`; then run `supabase/tests/booking.sql`, `supabase/tests/workflows.sql`, and `scripts/test_concurrent_booking.sh` with `CARECONNECT_TEST_DATABASE_URL` set. The bootstrap file is **only** for plain PostgreSQL CI; never deploy it to Supabase. CI runs these checks and an unsigned iOS build. The integration test under `integration_test/` runs against a disposable Supabase project with a confirmed test patient and seed data. Run `flutter test integration_test/booking_journey_test.dart -d DEVICE_ID` with `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `TEST_PATIENT_EMAIL`, and `TEST_PATIENT_PASSWORD` supplied via `--dart-define`; it skips without them. The test signs in, finds a live slot, books it, verifies the appointment, and cancels it.
 
-## Daily automated maintenance
-
-GitHub Actions runs `.github/workflows/daily-health.yml` at 04:17 UTC (09:47 Asia/Kolkata). It resolves Flutter dependencies, runs analysis and unit/widget tests, and commits one dated report under `docs/maintenance/` using the `github-actions[bot]` identity. The report identifies the run and check results. A manual rerun on the same local date does not create another report. This workflow runs on GitHub while a developer's computer is off; it does not write application code or represent a day of manual development. Bot-authored reports are not expected to count as the repository owner's personal contribution activity. GitHub may delay or skip scheduled runs, and repository Actions settings or branch protection can prevent a push, so a commit every calendar day is not guaranteed. To stop the schedule, disable the workflow in GitHub Actions or remove its `schedule` trigger.
-
 ## Android and iOS builds
 
 ```sh
