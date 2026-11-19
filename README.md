@@ -30,7 +30,7 @@ The app persists Supabase sessions in Keychain or encrypted Android storage thro
 
 1. A verified user registers a clinic and becomes its clinic administrator.
 2. The administrator adds a previously verified doctor account, selects a specialty and consultation duration, and adds weekly hours. Clinic admins can edit contact details and booking cutoffs later.
-3. A patient searches by doctor, specialty, clinic, or city and chooses an available day and time.
+3. A patient searches by doctor, specialty, clinic, or city, can select a clinic to browse only its doctors, and chooses an available day and time.
 4. The booking RPC rechecks the slot and inserts the appointment. Database exclusion constraints reject overlapping doctor or patient bookings, including concurrent requests.
 5. The doctor sees the booking in the clinic workspace. The patient sees it in My appointments and receives an in-app confirmation. A configured provider can deliver the generic confirmation and reminder externally.
 6. The doctor marks the visit completed or no-show after it starts.

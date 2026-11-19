@@ -102,7 +102,18 @@ class DiscoverTab extends ConsumerStatefulWidget {
 
 class _DiscoverTabState extends ConsumerState<DiscoverTab> {
   String query = '', specialty = 'All';
+  String? selectedClinicId;
   bool todayOnly = false;
+  final searchController = TextEditingController();
+  final scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    searchController.dispose();
+    scrollController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final providers = ref.watch(providersProvider);
@@ -118,6 +129,7 @@ class _DiscoverTabState extends ConsumerState<DiscoverTab> {
         await ref.read(providersProvider.future);
       },
       child: ListView(
+        controller: scrollController,
         children: [
           PageFrame(
             child: Column(
@@ -135,6 +147,7 @@ class _DiscoverTabState extends ConsumerState<DiscoverTab> {
                 ),
                 const SizedBox(height: 18),
                 TextField(
+                  controller: searchController,
                   decoration: const InputDecoration(
                     prefixIcon: Icon(Icons.search),
                     hintText: 'Search doctor, clinic or city',
@@ -158,6 +171,8 @@ class _DiscoverTabState extends ConsumerState<DiscoverTab> {
                               .toLowerCase()
                               .contains(query);
                       return matches &&
+                          (selectedClinicId == null ||
+                              p.clinicId == selectedClinicId) &&
                           (specialty == 'All' ||
                               p.specialties.contains(specialty)) &&
                           (!todayOnly ||
@@ -172,6 +187,15 @@ class _DiscoverTabState extends ConsumerState<DiscoverTab> {
                         Wrap(
                           spacing: 8,
                           children: [
+                            if (selectedClinicId != null)
+                              InputChip(
+                                label: Text(
+                                  'Clinic: ${clinics.asData?.value.where((c) => c.id == selectedClinicId).firstOrNull?.name ?? 'Selected'}',
+                                ),
+                                onDeleted: () =>
+                                    setState(() => selectedClinicId = null),
+                                deleteButtonTooltipMessage: 'Show all clinics',
+                              ),
                             for (final s in specialties)
                               ChoiceChip(
                                 label: Text(s),
@@ -272,23 +296,48 @@ class _DiscoverTabState extends ConsumerState<DiscoverTab> {
                 AsyncPanel(
                   value: clinics,
                   onRetry: () => ref.invalidate(clinicsProvider),
-                  data: (all) => all.isEmpty
-                      ? const _Empty('No clinics have joined yet.')
-                      : Column(
-                          children: [
-                            for (final c in all)
-                              Card(
-                                child: ListTile(
-                                  title: Text(c.name),
-                                  subtitle: Text('${c.address}, ${c.city}'),
-                                  leading: const Icon(
-                                    Icons.local_hospital_outlined,
-                                  ),
-                                  trailing: const Icon(Icons.place_outlined),
-                                ),
+                  data: (all) {
+                    final filtered = all.where(
+                      (c) =>
+                          query.isEmpty ||
+                          '${c.name} ${c.city} ${c.address}'
+                              .toLowerCase()
+                              .contains(query),
+                    );
+                    if (all.isEmpty) {
+                      return const _Empty('No clinics have joined yet.');
+                    }
+                    if (filtered.isEmpty) {
+                      return const _Empty('No clinics match your search.');
+                    }
+                    return Column(
+                      children: [
+                        for (final c in filtered)
+                          Card(
+                            child: ListTile(
+                              title: Text(c.name),
+                              subtitle: Text('${c.address}, ${c.city}'),
+                              leading: const Icon(
+                                Icons.local_hospital_outlined,
                               ),
-                          ],
-                        ),
+                              trailing: const Icon(Icons.chevron_right),
+                              onTap: () {
+                                setState(() {
+                                  selectedClinicId = c.id;
+                                  query = '';
+                                  searchController.clear();
+                                });
+                                scrollController.animateTo(
+                                  0,
+                                  duration: const Duration(milliseconds: 300),
+                                  curve: Curves.easeOut,
+                                );
+                              },
+                            ),
+                          ),
+                      ],
+                    );
+                  },
                 ),
               ],
             ),
