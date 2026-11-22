@@ -554,11 +554,35 @@ class _AppointmentCard extends StatelessWidget {
   }
 }
 
-class InboxTab extends ConsumerWidget {
+class InboxTab extends ConsumerStatefulWidget {
   const InboxTab({super.key});
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<InboxTab> createState() => _InboxTabState();
+}
+
+class _InboxTabState extends ConsumerState<InboxTab> {
+  bool markingAll = false;
+
+  Future<void> markAllRead() async {
+    setState(() => markingAll = true);
+    try {
+      await ref.read(repositoryProvider).markAllNotificationsRead();
+      ref.invalidate(notificationsProvider);
+      if (mounted) showMessage(context, 'All notifications marked as read');
+    } catch (error) {
+      if (mounted) showError(context, error);
+    } finally {
+      if (mounted) setState(() => markingAll = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final value = ref.watch(notificationsProvider);
+    final unread =
+        ref.watch(unreadNotificationsProvider).asData?.value ??
+        value.asData?.value.where((n) => n['read_at'] == null).length ??
+        0;
     return RefreshIndicator(
       onRefresh: () async {
         ref.invalidate(notificationsProvider);
@@ -570,11 +594,26 @@ class InboxTab extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Notifications',
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    Text(
+                      'Notifications',
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    if (unread > 0)
+                      TextButton.icon(
+                        onPressed: markingAll ? null : markAllRead,
+                        icon: const Icon(Icons.done_all),
+                        label: Text(
+                          markingAll ? 'Marking...' : 'Mark all read',
+                        ),
+                      ),
+                  ],
                 ),
                 const SizedBox(height: 16),
                 AsyncPanel(
@@ -602,10 +641,16 @@ class InboxTab extends ConsumerWidget {
                                     ),
                                   ),
                                   onTap: () async {
-                                    await ref
-                                        .read(repositoryProvider)
-                                        .markRead(n['id'] as String);
-                                    ref.invalidate(notificationsProvider);
+                                    try {
+                                      await ref
+                                          .read(repositoryProvider)
+                                          .markRead(n['id'] as String);
+                                      ref.invalidate(notificationsProvider);
+                                    } catch (error) {
+                                      if (context.mounted) {
+                                        showError(context, error);
+                                      }
+                                    }
                                   },
                                 ),
                               ),

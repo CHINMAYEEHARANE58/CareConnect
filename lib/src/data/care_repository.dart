@@ -26,6 +26,10 @@ final membershipsProvider = FutureProvider<List<Map<String, dynamic>>>(
 final notificationsProvider = FutureProvider<List<Map<String, dynamic>>>(
   (ref) => ref.watch(repositoryProvider).notifications(),
 );
+final unreadNotificationsProvider = FutureProvider<int>((ref) async {
+  await ref.watch(notificationsProvider.future);
+  return ref.watch(repositoryProvider).unreadNotificationCount();
+});
 final platformAdminProvider = FutureProvider<bool>(
   (ref) async =>
       await ref.watch(repositoryProvider).db.rpc('is_platform_admin') as bool,
@@ -170,7 +174,23 @@ class CareRepository {
   Future<void> markRead(String id) async => db
       .from('notifications')
       .update({'read_at': DateTime.now().toUtc().toIso8601String()})
-      .eq('id', id);
+      .eq('id', id)
+      .eq('user_id', userId)
+      .isFilter('read_at', null);
+  Future<int> unreadNotificationCount() async =>
+      (await db
+              .from('notifications')
+              .select('id')
+              .eq('user_id', userId)
+              .isFilter('read_at', null)
+              .limit(0)
+              .count())
+          .count;
+  Future<void> markAllNotificationsRead() async => db
+      .from('notifications')
+      .update({'read_at': DateTime.now().toUtc().toIso8601String()})
+      .eq('user_id', userId)
+      .isFilter('read_at', null);
   Future<Map<String, dynamic>> profile() async => await db
       .from('profiles')
       .select('id,full_name,phone,notification_enabled')

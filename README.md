@@ -1,6 +1,6 @@
 # CareConnect
 
-Flutter mobile scheduling for patients, doctors, clinic administrators, and platform administrators. Patients can search fictional demo clinics, view live slots, book without payment, reschedule, cancel, and read notifications. Clinic staff can register clinics, add verified doctors, set or remove weekly hours, deactivate providers, block days, view appointments, and close appointments. PostgreSQL owns booking integrity.
+Flutter mobile scheduling for patients, doctors, clinic administrators, and platform administrators. Patients can search fictional demo clinics, view live slots, book without payment, reschedule, cancel, and mark individual or all notifications as read. Clinic staff can register clinics, add verified doctors, set or remove weekly hours, deactivate providers, block days, view appointments, and close appointments. PostgreSQL owns booking integrity.
 
 ## Prerequisites
 
