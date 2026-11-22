@@ -40,7 +40,14 @@ void main() {
       'starts_at': '2026-12-01T12:00:00Z',
       'ends_at': '2026-12-01T12:30:00Z',
       'status': 'booked',
-      'clinics': {'name': 'Willow', 'cancellation_cutoff_minutes': 120},
+      'clinics': {
+        'name': 'Willow',
+        'address': '12 Oak Road',
+        'city': 'Bengaluru',
+        'phone': '+91 12345 67890',
+        'email': 'hello@willow.example',
+        'cancellation_cutoff_minutes': 120,
+      },
       'doctors': {'display_name': 'Dr. Mira Shah'},
     });
     expect(
@@ -59,5 +66,13 @@ void main() {
       appointment.canPatientChangeAt(DateTime.utc(2026, 12, 1, 10, 1)),
       isFalse,
     );
+    expect(appointment.clinicPhone, '+91 12345 67890');
+    expect(appointment.clinicEmail, 'hello@willow.example');
+    expect(appointment.directionsUri.scheme, 'https');
+    expect(appointment.directionsUri.path, '/maps/dir/');
+    expect(appointment.directionsUri.queryParameters, {
+      'api': '1',
+      'destination': 'Willow, 12 Oak Road, Bengaluru',
+    });
   });
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../data/care_repository.dart';
 import '../data/models.dart';
 import '../shared/ui.dart';
@@ -423,6 +424,17 @@ class _AppointmentCard extends StatelessWidget {
   const _AppointmentCard({required this.a, required this.ref});
   final Appointment a;
   final WidgetRef ref;
+
+  Future<void> _openLink(BuildContext context, Uri uri) async {
+    try {
+      if (!await launchUrl(uri) && context.mounted) {
+        showMessage(context, 'No app is available to open this link.');
+      }
+    } catch (error) {
+      if (context.mounted) showError(context, error);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final canChange = a.canPatientChangeAt(DateTime.now());
@@ -446,6 +458,7 @@ class _AppointmentCard extends StatelessWidget {
               ],
             ),
             Text(a.clinicName),
+            Text('${a.clinicAddress}, ${a.clinicCity}'),
             const SizedBox(height: 6),
             Text(
               '${DateFormat('EEE, d MMM yyyy • h:mm a').format(a.startsAt)} ${a.startsAt.timeZoneName}',
@@ -456,6 +469,35 @@ class _AppointmentCard extends StatelessWidget {
                     ? 'Change deadline: ${DateFormat('EEE, d MMM • h:mm a').format(a.patientChangeDeadline)} ${a.patientChangeDeadline.timeZoneName}'
                     : 'Change deadline passed. Contact the clinic if you need help.',
                 style: Theme.of(context).textTheme.bodySmall,
+              ),
+            if (a.status == 'booked' && a.endsAt.isAfter(DateTime.now()))
+              Wrap(
+                spacing: 8,
+                children: [
+                  TextButton.icon(
+                    onPressed: () => _openLink(context, a.directionsUri),
+                    icon: const Icon(Icons.directions_outlined),
+                    label: const Text('Directions'),
+                  ),
+                  if (a.clinicPhone?.trim().isNotEmpty == true)
+                    TextButton.icon(
+                      onPressed: () => _openLink(
+                        context,
+                        Uri(scheme: 'tel', path: a.clinicPhone!.trim()),
+                      ),
+                      icon: const Icon(Icons.call_outlined),
+                      label: const Text('Call clinic'),
+                    ),
+                  if (a.clinicEmail?.trim().isNotEmpty == true)
+                    TextButton.icon(
+                      onPressed: () => _openLink(
+                        context,
+                        Uri(scheme: 'mailto', path: a.clinicEmail!.trim()),
+                      ),
+                      icon: const Icon(Icons.mail_outline),
+                      label: const Text('Email clinic'),
+                    ),
+                ],
               ),
             if (canChange)
               Row(

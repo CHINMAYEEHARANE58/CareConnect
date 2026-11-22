@@ -13,6 +13,7 @@ dependencies:
   flutter_secure_storage: ^11.2.0
   intl: ^0.20.2
   connectivity_plus: ^7.0.0
+  url_launcher: ^6.3.3
 dev_dependencies:
   flutter_test:
     sdk: flutter

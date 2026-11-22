@@ -76,11 +76,15 @@ class Appointment {
     required this.doctorId,
     required this.patientId,
     required this.clinicName,
+    required this.clinicAddress,
+    required this.clinicCity,
     required this.doctorName,
     required this.startsAt,
     required this.endsAt,
     required this.status,
     required this.cancellationCutoffMinutes,
+    this.clinicPhone,
+    this.clinicEmail,
     this.patientName,
   });
   final String id,
@@ -88,11 +92,17 @@ class Appointment {
       doctorId,
       patientId,
       clinicName,
+      clinicAddress,
+      clinicCity,
       doctorName,
       status;
-  final String? patientName;
+  final String? patientName, clinicPhone, clinicEmail;
   final DateTime startsAt, endsAt;
   final int cancellationCutoffMinutes;
+  Uri get directionsUri => Uri.https('www.google.com', '/maps/dir/', {
+    'api': '1',
+    'destination': '$clinicName, $clinicAddress, $clinicCity',
+  });
   DateTime get patientChangeDeadline =>
       startsAt.subtract(Duration(minutes: cancellationCutoffMinutes));
   bool canPatientChangeAt(DateTime now) =>
@@ -103,6 +113,10 @@ class Appointment {
     doctorId: j['doctor_id'] as String,
     patientId: j['patient_id'] as String,
     clinicName: (j['clinics'] as Map<String, dynamic>)['name'] as String,
+    clinicAddress: (j['clinics'] as Map<String, dynamic>)['address'] as String,
+    clinicCity: (j['clinics'] as Map<String, dynamic>)['city'] as String,
+    clinicPhone: (j['clinics'] as Map<String, dynamic>)['phone'] as String?,
+    clinicEmail: (j['clinics'] as Map<String, dynamic>)['email'] as String?,
     doctorName:
         (j['doctors'] as Map<String, dynamic>)['display_name'] as String,
     patientName:
