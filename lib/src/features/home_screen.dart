@@ -20,6 +20,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final memberships = ref.watch(membershipsProvider).asData?.value ?? [];
     final platformAdmin =
         ref.watch(platformAdminProvider).asData?.value ?? false;
+    final unreadCount =
+        ref.watch(unreadNotificationsProvider).asData?.value ?? 0;
     final isStaff = memberships.isNotEmpty || platformAdmin;
     final labels = ['Discover', 'Appointments', if (isStaff) 'Clinic', 'Inbox'];
     final icons = [
@@ -28,6 +30,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       if (isStaff) Icons.medical_services_outlined,
       Icons.notifications_none,
     ];
+    Widget navigationIcon(int index) =>
+        index == labels.length - 1 && unreadCount > 0
+        ? Badge.count(count: unreadCount, child: Icon(icons[index]))
+        : Icon(icons[index]);
     if (tab >= labels.length) tab = 0;
     final pages = [
       const DiscoverTab(),
@@ -70,7 +76,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     destinations: [
                       for (var i = 0; i < labels.length; i++)
                         NavigationRailDestination(
-                          icon: Icon(icons[i]),
+                          icon: navigationIcon(i),
                           label: Text(labels[i]),
                         ),
                     ],
@@ -88,7 +94,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               onDestinationSelected: (i) => setState(() => tab = i),
               destinations: [
                 for (var i = 0; i < labels.length; i++)
-                  NavigationDestination(icon: Icon(icons[i]), label: labels[i]),
+                  NavigationDestination(
+                    icon: navigationIcon(i),
+                    label: labels[i],
+                  ),
               ],
             ),
     );

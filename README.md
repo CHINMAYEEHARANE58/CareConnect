@@ -39,6 +39,8 @@ Clinic administrators can block full days or a doctor's day. Blocks overlapping 
 
 ## Notifications
 
+The Inbox navigation icon shows the unread count on phones and tablets. The count comes from all unread notifications, including those older than the 100 most recent messages shown in the inbox.
+
 Deploy `dispatch-notifications` and set its secrets:
 
 ```sh
